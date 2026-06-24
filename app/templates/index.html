@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechPulse — AI Intelligence Hub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono: ['JetBrains Mono', 'ui-monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #07070f;
+      color: #e2e2f0;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ── Dot-grid atmosphere ──────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(124, 111, 255, 0.13) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(110, 95, 255, 0.09) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header glass ─────────────────────────────────────────── */
+    .tp-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 64px;
+      background: rgba(7, 7, 15, 0.75);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.055);
+    }
+
+    /* ── Content above layers ─────────────────────────────────── */
+    .tp-header, main, footer { position: relative; z-index: 1; }
+
+    /* ── Logo pulse ring ──────────────────────────────────────── */
+    .logo-ring {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, #7c6fff 0%, #00c9ff 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 18px rgba(124,111,255,0.45), 0 0 0 1px rgba(124,111,255,0.35);
+      flex-shrink: 0;
+    }
+
+    /* ── Stat pill ────────────────────────────────────────────── */
+    .stat-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+      color: #7070a0;
+      white-space: nowrap;
+    }
+
+    /* ── Live dot ─────────────────────────────────────────────── */
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 7px #22c55e;
+      animation: livepulse 2.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Crawl button ─────────────────────────────────────────── */
+    .crawl-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 15px;
+      background: rgba(124,111,255,0.12);
+      border: 1px solid rgba(124,111,255,0.32);
+      border-radius: 9px;
+      font-size: 13px; font-weight: 500; color: #a39bff;
+      cursor: pointer;
+      transition: background .2s, color .2s, transform .15s, box-shadow .2s;
+      white-space: nowrap;
+    }
+    .crawl-btn:hover:not(:disabled) {
+      background: rgba(124,111,255,0.22);
+      color: #c8c0ff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(124,111,255,0.25);
+    }
+    .crawl-btn:disabled { opacity: .55; cursor: wait; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .spinning { animation: spin .9s linear infinite; display:inline-block; }
+
+    /* ── Source filter tabs ───────────────────────────────────── */
+    .filters-bar { overflow-x: auto; scrollbar-width: none; }
+    .filters-bar::-webkit-scrollbar { display: none; }
+
+    .ftab {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13px; font-weight: 500;
+      color: #60607a;
+      border: 1px solid transparent;
+      text-decoration: none;
+      transition: color .18s, background .18s, border-color .18s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ftab:hover { color: #c0c0d8; background: rgba(255,255,255,0.04); }
+    .ftab.active {
+      color: #dcdaf8;
+      background: rgba(124,111,255,0.13);
+      border-color: rgba(124,111,255,0.32);
+    }
+    .ftab-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .ftab-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: inherit; opacity: .55;
+    }
+
+    /* ── Section labels ───────────────────────────────────────── */
+    .sec-label {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #46466a;
+    }
+    .sec-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.05);
+    }
+    .sec-label span { color: #7c6fff; }
+
+    /* ── Featured card ────────────────────────────────────────── */
+    .featured-card {
+      position: relative;
+      background: linear-gradient(145deg, #0d0d22 0%, #0c1124 100%);
+      border: 1px solid rgba(124,111,255,0.22);
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .25s, box-shadow .25s;
+      text-decoration: none; color: inherit; display: block;
+    }
+    .featured-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, #7c6fff, #00c9ff, #7c6fff);
+      background-size: 200% 100%;
+      animation: shimmer 3.5s linear infinite;
+    }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    .featured-card:hover {
+      border-color: rgba(124,111,255,0.4);
+      box-shadow: 0 0 0 1px rgba(124,111,255,0.15), 0 24px 80px rgba(0,0,0,0.5);
+    }
+
+    /* ── Article cards ────────────────────────────────────────── */
+    .art-card {
+      position: relative;
+      background: #0c0c1a;
+      border: 1px solid rgba(255,255,255,0.055);
+      border-radius: 16px;
+      padding: 22px;
+      cursor: pointer;
+      transition: background .22s, border-color .22s, transform .22s, box-shadow .22s;
+      display: flex; flex-direction: column; gap: 0;
+      overflow: hidden;
+    }
+    .art-card:hover {
+      background: #0f0f20;
+      border-color: rgba(124,111,255,0.22);
+      transform: translateY(-3px);
+      box-shadow: 0 18px 55px rgba(0,0,0,0.45), 0 0 0 1px rgba(124,111,255,0.1);
+    }
+    /* Subtle glow on hover */
+    .art-card::after {
+      content: '';
+      position: absolute; inset: 0; border-radius: 16px;
+      background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(124,111,255,0.07), transparent);
+      opacity: 0; transition: opacity .3s;
+      pointer-events: none;
+    }
+    .art-card:hover::after { opacity: 1; }
+
+    /* ── Source badge ─────────────────────────────────────────── */
+    .src-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    /* ── Score pill ───────────────────────────────────────────── */
+    .score-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px; font-weight: 600;
+    }
+
+    /* ── Takeaway item ────────────────────────────────────────── */
+    .tkwy {
+      display: flex; align-items: flex-start; gap: 7px;
+      font-size: 12.5px; color: #828298; line-height: 1.5;
+    }
+    .tkwy::before {
+      content: '→'; color: #7c6fff;
+      font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ── Action buttons ───────────────────────────────────────── */
+    .btn-accent {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      background: rgba(124,111,255,0.14); border: 1px solid rgba(124,111,255,0.3);
+      border-radius: 9px; font-size: 13px; font-weight: 500; color: #a69eff;
+      text-decoration: none;
+      transition: background .18s, color .18s, box-shadow .18s;
+    }
+    .btn-accent:hover {
+      background: rgba(124,111,255,0.24); color: #c4beff;
+      box-shadow: 0 4px 18px rgba(124,111,255,0.22);
+    }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 9px; font-size: 13px; font-weight: 500; color: #55556a;
+      text-decoration: none;
+      transition: border-color .18s, color .18s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: #c0c0d8; }
+
+    /* ── SVG score ring ───────────────────────────────────────── */
+    .score-ring-wrap {
+      position: relative; width: 88px; height: 88px; flex-shrink: 0;
+    }
+    .score-ring-wrap svg { transform: rotate(-90deg); }
+    .score-ring-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    /* ── Line clamps ──────────────────────────────────────────── */
+    .lc2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+    .lc3 { display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
+
+    /* ── Divider ──────────────────────────────────────────────── */
+    .card-divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 14px 0; }
+
+    /* ── Empty state ──────────────────────────────────────────── */
+    .empty-wrap { text-align: center; padding: 90px 20px; }
+    .empty-pulse {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #7c6fff; margin: 0 auto 28px;
+      animation: livepulse 1.4s ease-in-out infinite;
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(124,111,255,0.3); border-radius: 3px; }
+
+    /* ── Gradient text ────────────────────────────────────────── */
+    .grad-text {
+      background: linear-gradient(135deg, #b0a6ff, #6ee7f7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .tp-footer {
+      border-top: 1px solid rgba(255,255,255,0.045);
+      padding: 18px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════ -->
+<header class="tp-header">
+  <div class="max-w-7xl mx-auto px-5 h-full flex items-center justify-between gap-4">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="logo-ring">⚡</div>
+      <div class="flex flex-col leading-none">
+        <span class="font-bold text-[15px] text-white tracking-tight">TechPulse</span>
+        <span class="text-[10px] text-[#44446a] hidden sm:block mt-0.5">AI Intelligence Hub</span>
+      </div>
+    </div>
+
+    <!-- Right controls -->
+    <div class="flex items-center gap-2.5 flex-shrink-0">
+      <!-- Live indicator + count -->
+      <div class="stat-chip">
+        <span class="live-dot"></span>
+        <span class="font-mono font-medium text-[#9090b8]">{{ total_articles }}</span>
+        <span class="hidden xs:inline">articles</span>
+      </div>
+
+      <!-- Last crawl -->
+      {% if last_crawl %}
+      <div class="stat-chip hidden md:inline-flex">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0">
+          <circle cx="6" cy="6" r="5" stroke="#55556a" stroke-width="1.2"/>
+          <path d="M6 3.5v2.75l1.5 1" stroke="#55556a" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        {{ last_crawl | timeago }}
+      </div>
+      {% endif %}
+
+      <!-- Crawl button -->
+      <button class="crawl-btn" id="crawl-btn" onclick="triggerCrawl()">
+        <svg id="crawl-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        <span id="crawl-label">Refresh</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════════════════ -->
+<main class="max-w-7xl mx-auto px-5 pt-20 pb-20">
+
+  <!-- Source filter tabs -->
+  <div class="filters-bar flex items-center gap-2 pt-6 pb-7">
+    <a href="/" class="ftab {% if not active_source %}active{% endif %}">
+      All
+      <span class="ftab-count">{{ total_articles }}</span>
+    </a>
+    {% for name, meta in source_meta.items() %}
+    <a href="/?source={{ name | urlquote }}"
+       class="ftab {% if active_source == name %}active{% endif %}">
+      <span class="ftab-dot" style="background:{{ meta.color }};box-shadow:0 0 5px {{ meta.color }}55;"></span>
+      {{ meta.short }}
+      <span class="ftab-count">{{ source_counts.get(name, 0) }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- ── FEATURED ARTICLE ──────────────────────────────────── -->
+  {% if top_articles %}
+  {% set feat = top_articles[0] %}
+  {% set fm = source_meta.get(feat.source, {}) %}
+  {% if feat.importance_score and feat.importance_score >= 6 %}
+
+  <section class="mb-10">
+    <div class="sec-label mb-4">
+      <span>⚡</span> Featured · Highest Importance
+    </div>
+
+    <div class="featured-card" onclick="location.href='/article/{{ feat.id }}'">
+      <div class="p-7 sm:p-9">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+
+          <!-- Text side -->
+          <div class="flex-1 min-w-0">
+
+            <!-- Meta row -->
+            <div class="flex flex-wrap items-center gap-2.5 mb-5">
+              <span class="src-badge"
+                style="background:{{ fm.get('dim','#111') }};color:{{ fm.get('color','#aaa') }};border:1px solid {{ fm.get('color','#aaa') }}33;">
+                {{ fm.get('icon','◆') }} {{ feat.source }}
+              </span>
+
+              {% if feat.importance_score %}
+                {% if feat.importance_score >= 9 %}
+                  <span class="score-pill" style="background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.3);color:#fca5a5;">● Critical {{ feat.importance_score }}/10</span>
+                {% elif feat.importance_score >= 7 %}
+                  <span class="score-pill" style="background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3);color:#fdba74;">● High {{ feat.importance_score }}/10</span>
+                {% else %}
+                  <span class="score-pill" style="background:rgba(124,111,255,.13);border:1px solid rgba(124,111,255,.3);color:#a5b4fc;">● Notable {{ feat.importance_score }}/10</span>
+                {% endif %}
+              {% endif %}
+
+              {% if feat.published_at %}
+              <span class="text-xs text-[#44446a] font-mono">{{ feat.published_at | fmt_date }}</span>
+              {% endif %}
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-[22px] sm:text-[26px] font-bold text-white leading-tight mb-4 tracking-tight">
+              {{ feat.title }}
+            </h2>
+
+            <!-- Summary -->
+            {% if feat.short_summary %}
+            <p class="text-[#8888a8] text-[14px] leading-relaxed mb-6">
+              {{ feat.short_summary }}
+            </p>
+            {% endif %}
+
+            <!-- Takeaways -->
+            {% if feat.key_takeaways %}
+            <div class="space-y-2.5 mb-7">
+              {% for t in feat.key_takeaways[:3] %}
+              <div class="tkwy">{{ t }}</div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="flex flex-wrap items-center gap-3" onclick="event.stopPropagation()">
+              <a href="/article/{{ feat.id }}" class="btn-accent">
+                Read Analysis
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+              <a href="{{ feat.url }}" target="_blank" rel="noopener noreferrer" class="btn-ghost">
+                Original ↗
+              </a>
+            </div>
+
+          </div>
+
+          <!-- Score ring -->
+          {% if feat.importance_score %}
+          {% set sc = feat.importance_score %}
+          {% set circ = 207.3 %}
+          {% set fill = (circ * sc / 10) | round(1) %}
+          {% if sc >= 9 %}{% set rc="#ef4444" %}
+          {% elif sc >= 7 %}{% set rc="#f97316" %}
+          {% elif sc >= 4 %}{% set rc="#7c6fff" %}
+          {% else %}{% set rc="#6b7280" %}{% endif %}
+
+          <div class="score-ring-wrap hidden lg:flex items-center justify-center self-center">
+            <svg viewBox="0 0 88 88" width="88" height="88" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="44" cy="44" r="33" stroke="rgba(255,255,255,0.06)" stroke-width="5.5"/>
+              <circle cx="44" cy="44" r="33"
+                stroke="{{ rc }}"
+                stroke-width="5.5"
+                stroke-linecap="round"
+                stroke-dasharray="{{ fill }} {{ circ }}"
+                style="filter:drop-shadow(0 0 8px {{ rc }}88)"/>
+            </svg>
+            <div class="score-ring-center flex-col" style="transform:rotate(90deg)">
+              <span class="font-mono font-bold text-[22px] text-white" style="transform:rotate(-90deg);display:block">{{ sc }}</span>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% endif %}
+  {% endif %}
+
+  <!-- ── ARTICLES GRID ─────────────────────────────────────── -->
+  <section>
+    <div class="sec-label mb-6">
+      <span>📰</span>
+      {% if active_source %}{{ active_source }}{% else %}Latest Articles{% endif %}
+    </div>
+
+    {% if articles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      {% for article in articles %}
+      {% set am = source_meta.get(article.source, {}) %}
+
+      <div class="art-card" onclick="location.href='/article/{{ article.id }}'">
+
+        <!-- ── Card header ── -->
+        <div class="flex items-start justify-between gap-2 mb-4">
+          <span class="src-badge"
+            style="background:{{ am.get('dim','#111') }}80;color:{{ am.get('color','#aaa') }};border:1px solid {{ am.get('color','#aaa') }}2a;">
+            {{ am.get('icon','◆') }} {{ am.get('short', article.source) }}
+          </span>
+
+          {% if article.importance_score %}
+            {% set s = article.importance_score %}
+            {% if s >= 9 %}
+              <span class="score-pill" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);color:#fca5a5;">● {{ s }}/10</span>
+            {% elif s >= 7 %}
+              <span class="score-pill" style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.28);color:#fdba74;">● {{ s }}/10</span>
+            {% elif s >= 4 %}
+              <span class="score-pill" style="background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.28);color:#a5b4fc;">● {{ s }}/10</span>
+            {% else %}
+              <span class="score-pill" style="background:rgba(107,114,128,.12);border:1px solid rgba(107,114,128,.22);color:#9ca3af;">● {{ s }}/10</span>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- ── Title ── -->
+        <h3 class="text-[15px] font-semibold text-[#dcdaea] leading-snug mb-2.5 lc2">
+          {{ article.title }}
+        </h3>
+
+        <!-- ── Summary ── -->
+        {% if article.short_summary %}
+        <p class="text-[13px] text-[#666680] leading-relaxed mb-3 lc3">
+          {{ article.short_summary }}
+        </p>
+        {% else %}
+        <p class="text-[13px] text-[#3a3a52] italic mb-3">Generating summary…</p>
+        {% endif %}
+
+        <!-- ── Takeaways ── -->
+        {% if article.key_takeaways %}
+        <hr class="card-divider">
+        <div class="space-y-2 mb-3">
+          {% for t in article.key_takeaways[:2] %}
+          <div class="tkwy lc2" style="font-size:12px;">{{ t }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ── Footer ── -->
+        <div class="mt-auto pt-3 border-t border-white/[0.04] flex items-center justify-between">
+          <span class="font-mono text-[11px] text-[#3a3a55]">
+            {% if article.published_at %}
+              {{ article.published_at | fmt_date }}
+            {% elif article.crawled_at %}
+              {{ article.crawled_at | timeago }}
+            {% endif %}
+          </span>
+          <div class="flex items-center gap-2.5" onclick="event.stopPropagation()">
+            <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer"
+               class="text-[11px] text-[#3a3a55] hover:text-[#7070a8] transition-colors">
+              ↗ Source
+            </a>
+            <span class="text-[11px] text-[#7c6fff]/50 font-medium">Details →</span>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="empty-wrap">
+      <div class="empty-pulse"></div>
+      <h3 class="text-[17px] font-semibold text-white/40 mb-2">
+        Crawl in progress…
+      </h3>
+      <p class="text-[13px] text-[#33334a] mb-1">
+        Articles will appear here once the first crawl completes.
+      </p>
+      <p class="text-[13px] text-[#33334a]">
+        This usually takes 2–4 minutes.
+      </p>
+      <button class="crawl-btn mt-7" onclick="triggerCrawl()">
+        ↺ Trigger Now
+      </button>
+    </div>
+    {% endif %}
+
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<footer class="tp-footer relative z-10">
+  <div class="max-w-7xl mx-auto px-5 flex flex-wrap items-center justify-between gap-3">
+    <span class="text-[11px] text-[#2e2e48]">
+      TechPulse v1.0 · AI Intelligence Hub
+    </span>
+    <div class="flex items-center gap-5">
+      <a href="/health" target="_blank"
+         class="flex items-center gap-2 text-[11px] text-[#2e2e48] hover:text-[#6060a0] transition-colors">
+        <span class="live-dot" style="width:5px;height:5px"></span>
+        System Health
+      </a>
+      <span class="text-[11px] font-mono text-[#2e2e48]">
+        {{ total_articles }} indexed
+      </span>
+      {% if last_crawl %}
+      <span class="text-[11px] text-[#2e2e48] hidden sm:inline">
+        Last crawl {{ last_crawl | timeago }}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script>
+  async function triggerCrawl() {
+    const btn   = document.getElementById('crawl-btn');
+    const icon  = document.getElementById('crawl-icon');
+    const label = document.getElementById('crawl-label');
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    icon.classList.add('spinning');
+    label.textContent = 'Crawling…';
+
+    try {
+      const res = await fetch('/api/crawl', { method: 'POST' });
+      const data = await res.json();
+      icon.classList.remove('spinning');
+      label.textContent = '✓ Started';
+      // Reload after 5s to show new data
+      setTimeout(() => location.reload(), 5_000);
+    } catch {
+      icon.classList.remove('spinning');
+      label.textContent = '✗ Failed';
+      btn.disabled = false;
+      setTimeout(() => { label.textContent = 'Refresh'; }, 3_000);
+    }
+  }
+</script>
+
+</body>
+</html>
